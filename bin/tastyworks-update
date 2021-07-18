@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Get the list of transacttions for a single TW account.
+"""Get the list of transactions for a single TW account.
 
 Running this script with `database-filename` and `account-pattern` will
 incrementally update a local dbm/Python shelve mapping of unique transaction-id
@@ -33,20 +33,12 @@ and password can be provided in one of three ways:
 __copyright__ = "Copyright (C) 2021  Martin Blais"
 __license__ = "GNU GPLv2"
 
-from functools import partial
 from typing import Dict, List, Optional, Union
 import datetime
-import getpass
 import logging
 import shelve
-import os
-import re
-import pprint
-from os import path
-
 
 import click
-import requests
 from dateutil import parser
 
 from goodkids import session as sesslib
@@ -84,11 +76,9 @@ def main(database: str, regexp: Optional[str],
     # Open the database and get the latest transaction stored in it from a
     # special slot.
     with shelve.open(database) as db:
-        # Get the list of accounts.
+        # Get the account.
         session = sesslib.get_session(username, password)
         accounts = utils.get_accounts(session)
-
-        # Filter down to the chosen account.
         account = utils.filter_matching_account(accounts, regexp)
         accid = account['account-number']
 

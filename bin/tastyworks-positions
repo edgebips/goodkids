@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+"""Get the list of positions for Tastyworks accountas.
+"""
+__copyright__ = "Copyright (C) 2021  Martin Blais"
+__license__ = "GNU GPLv2"
+
+from decimal import Decimal
+from typing import Dict, List, Optional, Union
+import logging
+
+import click
+import petl
+petl.config.look_style = 'minimal'
+petl.compat.numeric_types = petl.compat.numeric_types + (Decimal,)
+petl.config.failonerror = True
+
+from goodkids import session as sesslib
+from goodkids import utils
+
+
+Json = Union[Dict[str, 'Json'], List['Json'], str, int, float]
+
+
+@click.command()
+@click.option('--regexp', '-a') # Name or part of name of the account id or type
+                                # or nickname.
+@click.option('--username', '-u', help="Tastyworks username.")
+@click.option('--password') # Tastyworks password.
+def main(regexp: str, username: Optional[str], password: Optional[str]):
+    # Get the account.
+    session = sesslib.get_session(username, password)
+    accounts = utils.get_accounts(session)
+    if regexp:
+        accounts = [utils.filter_matching_account(accounts, regexp)]
+
+    positions = []
+    for account in accounts:
+        accid = account['account-number']
+        resp = session.relget(f'/accounts/{accid}/positions')
+        positions.extend(utils.get_data(resp)['items'])
+
+    table = petl.fromdicts(positions)
+
+    table = table.groupselectfirst('underlying-symbol')
+    print(table.lookallstr())
+
+
+
+if __name__ == '__main__':
+    main()
