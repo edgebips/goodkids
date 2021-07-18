@@ -4,6 +4,8 @@
 Under Linux, the platform is more stable if you reinstall from scratch.
 Do this regularly with this script (e.g. every day?).
 """
+__copyright__ = "Copyright (C) 2021  Martin Blais"
+__license__ = "GNU GPLv2"
 
 import logging
 import tempfile
