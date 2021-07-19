@@ -57,7 +57,9 @@ def get_accounts(session: Session) -> List[Json]:
     if resp.status_code != 200:
         raise TastyApiError('Could not get trading accounts info', resp)
     items = get_data(resp)['items']
-    return [item['account'] for item in items if item['authority-level'] == 'owner']
+    accounts = [item['account'] for item in items if item['authority-level'] == 'owner']
+    
+    return [acc for acc in accounts if not acc['is-closed']]
 
 
 def filter_matching_account(accounts: List[Json], regexp: Optional[str]) -> Json:
