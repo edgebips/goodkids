@@ -11,6 +11,7 @@ import logging
 import subprocess
 import os
 import time
+import datetime
 from urllib.request import urlretrieve
 from os import path
 
@@ -51,7 +52,8 @@ def download(url: str) -> str:
     """Retrieve the URL to a local file."""
     if not path.exists(ARCHIVE_DIR):
         os.makedirs(ARCHIVE_DIR)
-    local_filename = path.join(ARCHIVE_DIR, path.basename(url))
+    local_filename = path.join(ARCHIVE_DIR,
+                               "{}.{}".format(path.basename(url), datetime.date.today()))
     last_reported = [0]
     def report_progress(block_num, block_size, total_size):
         downloaded_bytes = block_num * block_size
