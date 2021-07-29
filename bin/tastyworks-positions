@@ -39,11 +39,9 @@ def main(regexp: str, username: Optional[str], password: Optional[str]):
         resp = session.relget(f'/accounts/{accid}/positions')
         positions.extend(utils.get_data(resp)['items'])
 
-    table = petl.fromdicts(positions)
-
-    table = table.groupselectfirst('underlying-symbol')
+    table = (petl.fromdicts(positions)
+             .sort('symbol'))
     print(table.lookallstr())
-
 
 
 if __name__ == '__main__':
