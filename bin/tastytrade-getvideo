@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+"""Fetch a Tastyworks video to the current directory.
+"""
+__copyright__ = "Copyright (C) 2021  Martin Blais"
+__license__ = "GNU GPLv2"
+
+import argparse
+import logging
+import re
+import shutil
+
+import bs4
+import click
+import requests
+from cachecontrol import CacheControl
+from cachecontrol.caches.file_cache import FileCache
+
+
+@click.command()
+@click.argument('url')
+def main(url: str):
+    # Find a name for the video.
+    match = re.fullmatch('.*/(.*)', url)
+    local_filename = '{}.mp4'.format(match.group(1))
+
+    # Fetch web page, find video id.
+    sess = CacheControl(requests.Session(),
+                        cache=FileCache('/tmp/web_cache', forever=True))
+    r = sess.get(url)
+    soup = bs4.BeautifulSoup(r.text, features='lxml')
+    div = soup.find('div', id=re.compile('^\d+$'))
+    video_id = div.attrs['id']
+    video_url = 'https://gateway.tastytrade.com/media/{}/{}.mp4'.format(
+        video_id, video_id)
+
+    # Download the file.
+    with requests.get(video_url, stream=True) as r:
+        with open(local_filename, 'wb') as f:
+            shutil.copyfileobj(r.raw, f)
+
+
+if __name__ == '__main__':
+    main()
