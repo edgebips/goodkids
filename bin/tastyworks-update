@@ -96,15 +96,17 @@ def main(database: str, regexp: Optional[str],
                 'end-date': timestr_end,
             })
         num_updated = 0
+        num_skipped = 0
         for txn in transactions:
             key = str(txn['id'])
             if key in db:
-                logging.info(f'> Skipping transaction {key} (at {txn["executed-at"]})')
+                num_skipped += 1
             else:
                 logging.info(f'> Storing transaction {key} (at {txn["executed-at"]})')
                 num_updated += 1
                 db[key] = txn
-        logging.info(f'Items updated: {num_updated}')
+        logging.info(f'Transactions skipped: {num_skipped}')
+        logging.info(f'Transactions updated: {num_updated}')
 
 
 if __name__ == '__main__':
