@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+"""Lookup market metrics for an instrument.
+"""
+__copyright__ = "Copyright (C) 2021  Martin Blais"
+__license__ = "GNU GPLv2"
+
+import datetime
+import re
+import webbrowser
+from decimal import Decimal
+from typing import Any, Dict, List, Optional, Union
+import logging
+
+import click
+import petl
+petl.config.look_style = 'minimal'
+petl.compat.numeric_types = petl.compat.numeric_types + (Decimal,)
+petl.config.failonerror = True
+
+import matplotlib
+from matplotlib import pyplot
+import seaborn as sns; sns.set()
+
+from goodkids import session as sesslib
+from goodkids import utils
+
+
+Json = Union[Dict[str, 'Json'], List['Json'], str, int, float]
+
+
+def convert_value(value):
+    return (Decimal(value)
+            if isinstance(value, str) and re.match('[0-9]+(\.[0-9]+)', value)
+            else value)
+
+
+@click.command()
+@click.option('--username', '-u', help="Tastyworks username.")
+@click.option('--password') # Tastyworks password.
+@click.argument('symbol')
+def main(username: Optional[str], password: Optional[str], symbol: str):
+    # Get the account.
+    session = sesslib.get_session(username, password)
+    resp = session.relget(f'/market-metrics', params={'symbols': symbol})
+    items = resp.json()['data']['items']
+    today = datetime.date.today()
+    for item in items:
+        del item['liquidity-running-state']
+        earnings = (petl.fromdicts([item.pop('earnings')]).transpose()
+                    if 'earnings' in item
+                    else None)
+        terms = (petl.fromdicts(item.pop('option-expiration-implied-volatilities'))
+                 .convert('expiration-date',
+                          lambda v: datetime.datetime.strptime(v, '%Y-%m-%d').date())
+                 .convert('implied-volatility',
+                          lambda v: Decimal(v) if v else v)
+                 .selecttrue('implied-volatility')
+                 .addfield('days-to-expiration',
+                           lambda r: (r['expiration-date'] - today).days)
+                 .selectgt('days-to-expiration', 1)
+                 )
+
+        volatility, base = (petl.fromdicts([item])
+                            .transpose()
+                            .pushheader(['field', 'value'])
+                            .convert('value', convert_value)
+                            .biselect(lambda r: re.search('volatility', r[0])))
+        volatility = (volatility
+                      .sort('field'))
+        print(base.lookallstr())
+        print(volatility.lookallstr())
+        if earnings:
+            print(earnings.lookallstr())
+        print(terms.lookallstr())
+
+        ivx = list(terms.values('implied-volatility'))
+        pyplot.figure(figsize=[20, 12])
+        pyplot.title(f"{symbol} term structure")
+        pyplot.ylim(bottom=0, top=max(ivx) + Decimal('0.05'))
+        pyplot.plot(terms.values('days-to-expiration'), ivx, '.-')
+        filename = '/tmp/terms.svg'
+        pyplot.savefig(filename)
+        logging.info(f"Wrote {filename}")
+
+
+if __name__ == '__main__':
+    main()
