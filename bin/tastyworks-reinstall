@@ -15,15 +15,13 @@ import datetime
 from urllib.request import urlretrieve
 from os import path
 
+import requests
 import click
 from selenium import webdriver
 from selenium.webdriver.chrome import options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
-
-ARCHIVE_DIR = '/opt/archive/tastyworks'
 
 
 def get_deb_url(headless: bool) -> str:
@@ -48,11 +46,20 @@ def get_deb_url(headless: bool) -> str:
     return deb_file_url
 
 
-def download(url: str) -> str:
+def get_latest_file(archive_dir: str) -> tuple[str, str]:
+    """Get the latest local file and its size."""
+    filenames = sorted(os.listdir(archive_dir))
+    if not filenames:
+        return None, 0
+    filename = path.join(archive_dir, filenames[-1])
+    return filename, path.getsize(filename)
+
+
+def download(url: str, archive_dir: str) -> str:
     """Retrieve the URL to a local file."""
-    if not path.exists(ARCHIVE_DIR):
-        os.makedirs(ARCHIVE_DIR)
-    local_filename = path.join(ARCHIVE_DIR,
+    if not path.exists(archive_dir):
+        os.makedirs(archive_dir)
+    local_filename = path.join(archive_dir,
                                "{}.{}".format(path.basename(url), datetime.date.today()))
     last_reported = [0]
     def report_progress(block_num, block_size, total_size):
@@ -78,14 +85,38 @@ def install(filename: str):
     subprocess.check_call(['sudo', 'dpkg', '-i', filename], shell=False)
 
 
+DEFAULT_ARCHIVE_DIR = '/opt/archive/tastyworks'
+
+
 @click.command()
 @click.option('--headless/--no-headless', default=True)
 def main(headless: bool):
     logging.basicConfig(level=logging.INFO, format='%(levelname)-8s: %(message)s')
-    subprocess.check_call(['sudo', '/usr/bin/ls', '-l', ARCHIVE_DIR], shell=False)
+
+    # List the existing files.
+    archive_dir = DEFAULT_ARCHIVE_DIR
+    subprocess.check_call(['sudo', '/usr/bin/ls', '-l', archive_dir], shell=False)
+
+    # Get the URL of the file to be downloaded.
     deb_file_url = get_deb_url(headless)
-    logging.info(f"Downloading {deb_file_url}")
-    filename = download(deb_file_url)
+
+    # Get the name and size of the latest file in the existing archive.
+    latest_local_file, local_size = get_latest_file(archive_dir)
+
+    # Get the size of the file to be downloaded.
+    logging.info(f"Check size of {deb_file_url}")
+    resp = requests.head(deb_file_url, allow_redirects=True)
+    remote_size = int(resp.headers.get('content-length', -1))
+
+    # Check if the file is the same.
+    if remote_size == local_size:
+        logging.info(f"Using local archive {latest_local_file}")
+        filename = latest_local_file
+    else:
+        logging.info(f"Downloading {deb_file_url}")
+        filename = download(deb_file_url, archive_dir)
+
+    # Install the archive.
     logging.info(f"Installing file {filename}")
     install(filename)
 
