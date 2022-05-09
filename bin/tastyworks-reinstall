@@ -22,15 +22,22 @@ from selenium.webdriver.chrome import options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service
 
 
-def get_deb_url(headless: bool) -> str:
+def get_deb_url(executable_path: str, headless: bool) -> str:
     """Obtain the URL to the latest version."""
 
     # Create driver.
-    opts = options.Options()
-    opts.headless = headless
-    driver = webdriver.Chrome(executable_path="chromedriver", options=opts)
+    service = Service(executable_path)
+    options = webdriver.ChromeOptions()
+    if headless:
+        options.add_argument('--headless')
+    options.add_argument('--disable-gpu')
+    options.add_argument('--ignore-ssl-errors=yes')
+    options.add_argument('--ignore-certificate-errors')
+
+    driver = webdriver.Chrome(service=service, options=options)
 
     # Open technology page and click on download link.
     driver.get('https://tastyworks.com/technology')
@@ -98,7 +105,7 @@ def main(headless: bool):
     subprocess.check_call(['sudo', '/usr/bin/ls', '-l', archive_dir], shell=False)
 
     # Get the URL of the file to be downloaded.
-    deb_file_url = get_deb_url(headless)
+    deb_file_url = get_deb_url("/snap/bin/chromium.chromedriver", headless)
 
     # Get the name and size of the latest file in the existing archive.
     latest_local_file, local_size = get_latest_file(archive_dir)

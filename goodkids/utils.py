@@ -58,7 +58,7 @@ def get_accounts(session: Session) -> List[Json]:
         raise TastyApiError('Could not get trading accounts info', resp)
     items = get_data(resp)['items']
     accounts = [item['account'] for item in items if item['authority-level'] == 'owner']
-    
+
     return [acc for acc in accounts if not acc['is-closed']]
 
 
