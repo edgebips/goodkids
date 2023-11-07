@@ -1,8 +1,8 @@
-# goodkids: Tastyworks Utilities on API Endpoints (Unofficial)
+# goodkids: Tastytrade Utilities on API Endpoints (Unofficial)
 
 ## Overview
 
-This repository is a series of lean and simple utilities based on the Tastyworks
+This repository is a series of lean and simple utilities based on the Tastytrade
 endpoints. The utilities include mostly tools to fetch and incrementally update
 the transactions log of your account to a local database and fetch other states
 of your account, such as balances, net-liq, a list of positions (for

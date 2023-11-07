@@ -1,4 +1,4 @@
-"""Session handling code for the Tastyworks endpoints.
+"""Session handling code for the Tastytrade endpoints.
 """
 __copyright__ = "Copyright (C) 2021  Martin Blais"
 __license__ = "GNU GPLv2"
@@ -21,8 +21,8 @@ from dateutil import parser
 Json = Union[Dict[str, 'Json'], List['Json'], str, int, float]
 
 
-API_URL = 'https://api.tastyworks.com'
-SESSION_TOKEN_CACHE_FILENAME = '~/.tastyworks/scripts/token_cache'
+API_URL = 'https://api.tastytrade.com'
+SESSION_TOKEN_CACHE_FILENAME = '~/.tastytrade/scripts/token_cache'
 
 
 class TastyApiError(Exception):

@@ -35,8 +35,8 @@ def convert_value(value):
 
 
 @click.command()
-@click.option('--username', '-u', help="Tastyworks username.")
-@click.option('--password') # Tastyworks password.
+@click.option('--username', '-u', help="Tastytrade username.")
+@click.option('--password') # Tastytrade password.
 @click.argument('symbol')
 def main(username: Optional[str], password: Optional[str], symbol: str):
     # Get the account.

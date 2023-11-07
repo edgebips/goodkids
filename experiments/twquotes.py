@@ -54,8 +54,8 @@ async def connect(tokens: dict[str, str]):
 
 
 @click.command()
-@click.option('--username', '-u', help="Tastyworks username.")
-@click.option('--password') # Tastyworks password.
+@click.option('--username', '-u', help="Tastytrade username.")
+@click.option('--password') # Tastytrade password.
 def main(username: Optional[str], password: Optional[str]):
     # Get the account.
     session = sesslib.get_session(username, password)
@@ -69,7 +69,7 @@ def main(username: Optional[str], password: Optional[str]):
     # 		SetHeader("Content-Type", "application/json").
     # 		SetHeader("Accept-Version", "v1").
     # 		SetHeader("Authorization", authToken).
-    # 		Get("https://api.tastyworks.com/quote-streamer-tokens")
+    # 		Get("https://api.tastytrade.com/quote-streamer-tokens")
 
     # 	return resp, err
 

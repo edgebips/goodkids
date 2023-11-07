@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Get the list of positions for Tastyworks accountas.
+"""Get the list of positions for Tastytrade accountas.
 """
 __copyright__ = "Copyright (C) 2021  Martin Blais"
 __license__ = "GNU GPLv2"
@@ -24,8 +24,8 @@ Json = Union[Dict[str, 'Json'], List['Json'], str, int, float]
 @click.command()
 @click.option('--regexp', '-a') # Name or part of name of the account id or type
                                 # or nickname.
-@click.option('--username', '-u', help="Tastyworks username.")
-@click.option('--password') # Tastyworks password.
+@click.option('--username', '-u', help="Tastytrade username.")
+@click.option('--password') # Tastytrade password.
 def main(regexp: str, username: Optional[str], password: Optional[str]):
     # Get the account.
     session = sesslib.get_session(username, password)

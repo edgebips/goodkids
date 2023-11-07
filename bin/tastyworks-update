@@ -5,7 +5,7 @@ Running this script with `database-filename` and `account-pattern` will
 incrementally update a local dbm/Python shelve mapping of unique transaction-id
 to JSON/dict data for that account. You can access it with a shelve. Example:
 
-    tastyworks-update transactions.db Margin
+    tastytrade-update transactions.db Margin
 
 Notes:
 
@@ -67,8 +67,8 @@ def get_approx_latest_time(db: shelve.Shelf) -> Optional[datetime.datetime]:
 @click.argument('database') # Path to database file.
 @click.option('--regexp', '-a') # Name or part of name of the account id or type
                                 # or nickname.
-@click.option('--username', '-u', help="Tastyworks username.")
-@click.option('--password') # Tastyworks password.
+@click.option('--username', '-u', help="Tastytrade username.")
+@click.option('--password') # Tastytrade password.
 def main(database: str, regexp: Optional[str],
          username: Optional[str], password: Optional[str]):
     logging.basicConfig(level=logging.INFO, format='%(levelname)-8s: %(message)s')
