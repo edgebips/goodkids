@@ -62,7 +62,7 @@ def get_accounts(session: Session) -> List[Json]:
     return [acc for acc in accounts if not acc['is-closed']]
 
 
-def filter_matching_account(accounts: List[Json], regexp: Optional[str]) -> Json:
+def filter_matching_account(accounts: List[Json], regexp: Optional[str]) -> Json|None:
     """Filter down the list of accounts to those matching a single regexp."""
     if regexp:
         accounts = [account
@@ -70,7 +70,9 @@ def filter_matching_account(accounts: List[Json], regexp: Optional[str]) -> Json
                     if any(re.search(regexp, account[field], flags=re.I)
                            for field in ['account-number', 'account-type-name',
                                          'nickname', 'external-id', 'margin-or-cash'])]
-    if len(accounts) != 1:
+    if len(accounts) == 0:
+        return None
+    elif len(accounts) > 1:
         raise ValueError(f"More than a single account matches pattern '{regexp}': \n"
                          "{}".format(pprint.pformat(accounts)))
     return next(iter(accounts))

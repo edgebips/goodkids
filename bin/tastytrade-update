@@ -37,6 +37,7 @@ from typing import Dict, List, Optional, Union
 import datetime
 import logging
 import shelve
+import pprint
 
 import click
 from dateutil import parser
@@ -80,6 +81,10 @@ def main(database: str, regexp: Optional[str],
         session = sesslib.get_session(username, password)
         accounts = utils.get_accounts(session)
         account = utils.filter_matching_account(accounts, regexp)
+        if not account:
+            logging.error(f"No account matches pattern '{regexp}': \n"
+                          "{}".format(pprint.pformat(accounts)))
+            return
         accid = account['account-number']
 
         # Compute time range for the account.
